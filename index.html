@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Feedback Form - IIPS</title>
+    <link rel="stylesheet" href="styles.css">
+    </link>
+</head>
+
+<body>
+    <!-- Admin Toggle Button -->
+    <button class="admin-toggle" onclick="showAdminLogin()">👤 Admin Portal</button>
+
+    <!-- Admin Login Modal -->
+    <div class="admin-login-modal" id="adminLoginModal">
+        <div class="admin-login-content">
+            <h2>🔐 Admin Login</h2>
+            <p class="admin-login-subtitle">Enter your credentials to access the admin portal</p>
+
+            <div class="login-form-group">
+                <label for="adminUsername">Username</label>
+                <input type="text" id="adminUsername" placeholder="Enter username" autocomplete="username">
+            </div>
+
+            <div class="login-form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter password" autocomplete="current-password">
+            </div>
+
+            <div class="login-error" id="loginError">
+                ❌ Invalid username or password. Please try again.
+            </div>
+
+            <div class="login-buttons">
+                <button class="login-btn login-btn-secondary" onclick="closeAdminLogin()">Cancel</button>
+                <button class="login-btn login-btn-primary" onclick="attemptLogin()">Login</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Admin Portal -->
+    <div class="admin-portal" id="adminPortal">
+        <div class="admin-header">
+            <h1> Admin Dashboard - Student Feedback</h1>
+            <button class="admin-close" onclick="closeAdminPortal()">Close Portal</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Statistics Cards -->
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <h3>Total Responses</h3>
+                    <div class="stat-value" id="totalResponses">0</div>
+                    <div class="stat-label">Feedback submissions</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Satisfaction</h3>
+                    <div class="stat-value" id="avgSatisfaction">-</div>
+                    <div class="stat-label">Out of 10</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Response Rate</h3>
+                    <div class="stat-value" id="responseRate">0%</div>
+                    <div class="stat-label">This semester</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Latest Response</h3>
+                    <div class="stat-value" id="latestResponse" style="font-size: 20px;">-</div>
+                    <div class="stat-label">Time ago</div>
+                </div>
+            </div>
+
+            <!-- Responses Section -->
+            <div class="responses-section">
+                <h2>Student Responses</h2>
+
+                <button class="export-btn" onclick="exportToCSV()">📥 Export to CSV</button>
+
+                <div class="filter-controls">
+                    <select id="filterYear" onchange="filterResponses()">
+                        <option value="">All Years</option>
+                        <option value="1">1<sup>st</sup> Year</option>
+                        <option value="2">2<sup>nd</sup> Year</option>
+                        <option value="3">3<sup>rd</sup> Year</option>
+                        <option value="4">4<sup>th</sup> Year</option>
+                        <option value="5">5<sup>th</sup> Year</option>
+                        <option value="6">6<sup>th</sup> Year</option>
+                        <option value="graduate">Graduate</option>
+                    </select>
+
+                    <input type="text" id="searchStudent" placeholder="Search by name or ID..."
+                        onkeyup="filterResponses()">
+
+                    <select id="sortBy" onchange="sortResponses()">
+                        <option value="date">Sort by Date</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="satisfaction">Sort by Satisfaction</option>
+                    </select>
+                </div>
+
+                <table class="response-table" id="responseTable">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Enrollment Number</th>
+                            <th>Program</th>
+                            <th>Year</th>
+                            <th>Satisfaction</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responseTableBody">
+                        <!-- Responses will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Detail Modal -->
+    <div class="response-modal" id="responseModal">
+        <div class="response-modal-content">
+            <h2>Response Details</h2>
+            <div id="responseDetails"></div>
+            <button class="close-modal-btn" onclick="closeResponseModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>PROGRESS</h3>
+            <span class="progress-count" id="progressCount">0/6</span>
+        </div>
+        <div class="progress-items">
+            <div class="progress-item" data-page="1">Personal Information</div>
+            <div class="progress-item" data-page="2">Course Content</div>
+            <div class="progress-item" data-page="3">Teaching Quality</div>
+            <div class="progress-item" data-page="4">Campus Facilities</div>
+            <div class="progress-item" data-page="5">Overall Experience</div>
+            <div class="progress-item" data-page="6">Additional Feedback</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="content-wrapper">
+            <!-- Page 0: Introduction -->
+            <div class="page active intro-page" id="page0">
+                <div class="logo"><img src="https://iips.edu.in/conference/image/IIPS_logo-removedbg.png" alt="LOGO"
+                        height="150px" width="150px"></div>
+                <h1><span class="span">I</span>NTERNATIONAL <span class="span">I</span>NSTITUTE OF <span
+                        class="span">P</span>ROFESSIONAL <span class="span">S</span>TUDIES</h1>
+
+                <div class="welcome-text">
+                    <h2>Student Feedback Form</h2>
+                    <p>Dear Student,</p>
+                    <p>Your voice matters! This feedback form is designed to help us understand your experience and
+                        continuously improve our educational services, facilities, and campus environment.</p>
+                    <p>The form will take approximately 5-7 minutes to complete. Your responses are completely
+                        confidential and will be used solely for institutional development purposes.</p>
+                    <p>Thank you for taking the time to share your valuable insights with us.</p>
+                </div>
+
+                <div class="button-group" style="justify-content: center;">
+                    <button class="btn btn-primary" onclick="goToPage(1)">Begin Feedback</button>
+                </div>
+            </div>
+
+            <!-- Page 1: Personal Information -->
+            <div class="page" id="page1">
+                <h2>Personal Information</h2>
+                <div class="form-section">
+                    <label for="studentName" class="required">Full Name</label>
+                    <input type="text" id="studentName" placeholder="Enter your full name">
+
+                    <label for="studentId" class="required">Enrollment Number</label>
+                    <input type="text" id="studentId" placeholder="Enter your student ID">
+
+                    <label for="program" class="required">Program/Course</label>
+                    <input type="text" id="program" placeholder="e.g., Computer Science">
+
+                    <label for="year" class="required">Year of Study</label>
+                    <select id="year">
+                        <option value="">Select Year</option>
+                        <option value="1">1<sup>st</sup> Year</option>
+                        <option value="2">2<sup>nd</sup> Year</option>
+                        <option value="3">3<sup>rd</sup> Year</option>
+                        <option value="4">4<sup>th</sup> Year</option>
+                        <option value="5">5<sup>th</sup> Year</option>
+                        <option value="6">6<sup>th</sup> Year</option>
+                        <option value="graduate">Graduate</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(0)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn1" onclick="goToPage(2)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 3: Teaching Quality -->
+            <div class="page" id="page3">
+                <h2>Teaching Quality</h2>
+                <div class="form-section">
+                    <label class="required">How would you rate your instructors' knowledge?</label>
+                    <div class="emoji-rating" id="instructorKnowledge">
+                        <button class="emoji-btn" data-value="1">😞</button>
+                        <button class="emoji-btn" data-value="2">😕</button>
+                        <button class="emoji-btn" data-value="3">😐</button>
+                        <button class="emoji-btn" data-value="4">😊</button>
+                        <button class="emoji-btn" data-value="5">😄</button>
+                    </div>
+
+                    <label class="required">Rate the clarity of instruction</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="claritySlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="clarityValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(2)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn2" onclick="goToPage(4)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 2: Course Content -->
+            <div class="page" id="page2">
+                <h2>Course Content</h2>
+                <div class="form-section">
+                    <label class="required">How relevant is the course content to your career goals?</label>
+                    <div class="number-rating" data-question="courseRelevance">
+                        <button type="button" class="number-btn" data-value="1">1</button>
+                        <button type="button" class="number-btn" data-value="2">2</button>
+                        <button type="button" class="number-btn" data-value="3">3</button>
+                        <button type="button" class="number-btn" data-value="4">4</button>
+                        <button type="button" class="number-btn" data-value="5">5</button>
+                        <button type="button" class="number-btn" data-value="6">6</button>
+                        <button type="button" class="number-btn" data-value="7">7</button>
+                        <button type="button" class="number-btn" data-value="8">8</button>
+                        <button type="button" class="number-btn" data-value="9">9</button>
+                        <button type="button" class="number-btn" data-value="10">10</button>
+                    </div>
+
+                    <label class="required">The allocation of the credits to the course is appropriate in relation to
+                        the level of course work?</label>
+                    <div class="radio-group" id="workloadRadio">
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="inappropriate">
+                            <span>Inappropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="somewhat-inappropriate">
+                            <span>Somewhat Inappropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="somewhat-appropriate">
+                            <span>Somewhat Appropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="appropriate">
+                            <span>Appropriate</span>
+                        </label>
+                    </div>
+                    <label class="required">The depth of the course content is adequate in relation to the expected
+                        Course Outcomes (COs)</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="contentDepthSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="contentDepthValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(1)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn3" onclick="goToPage(3)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 4: Campus Facilities -->
+            <div class="page" id="page4">
+                <h2>Campus Facilities</h2>
+                <div class="form-section">
+                    <label class="required">How would you rate management and material available in the library and
+                        study spaces?</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="libraryHygieneSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="libraryHygieneValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+
+                    <label class="required">How satisfied are you with campus facilities?</label>
+                    <div class="emoji-rating" id="facilitiesRating">
+                        <button class="emoji-btn" data-value="1">😞</button>
+                        <button class="emoji-btn" data-value="2">😕</button>
+                        <button class="emoji-btn" data-value="3">😐</button>
+                        <button class="emoji-btn" data-value="4">😊</button>
+                        <button class="emoji-btn" data-value="5">😄</button>
+                    </div>
+
+                    <label class="required">How would you rate hygiene and avability of resources in the labs &
+                        washrooms?</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="labsWashHygieneSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="labsWashHygieneValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(3)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn4" onclick="goToPage(5)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 5: Overall Experience -->
+            <div class="page" id="page5">
+                <h2>Overall Experience</h2>
+                <div class="form-section">
+                    <label class="required">Overall satisfaction with IIPS (1-10)</label>
+                    <div class="number-rating" id="overallSatisfaction">
+                        <button class="number-btn" data-value="1">1</button>
+                        <button class="number-btn" data-value="2">2</button>
+                        <button class="number-btn" data-value="3">3</button>
+                        <button class="number-btn" data-value="4">4</button>
+                        <button class="number-btn" data-value="5">5</button>
+                        <button class="number-btn" data-value="6">6</button>
+                        <button class="number-btn" data-value="7">7</button>
+                        <button class="number-btn" data-value="8">8</button>
+                        <button class="number-btn" data-value="9">9</button>
+                        <button class="number-btn" data-value="10">10</button>
+                    </div>
+
+                    <label class="required">Would you recommend IIPS?</label>
+                    <div class="radio-group" id="recommendRadio">
+                        <label class="radio-label"><input type="radio" name="recommend"
+                                value="definitely"><span>Definitely Yes</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="probably"><span>Probably
+                                Yes</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="not-sure"><span>Not
+                                Sure</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="no"><span>Probably
+                                Not</span></label>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(4)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn5" onclick="goToPage(6)" disabled>Next</button>
+                </div>
+            </div>
+
+
+            <!-- Section 6: additional feedback -->
+            <div class="page" id="page6">
+                <h2>Additional Feedback</h2>
+                <div class="form-section">
+                    <label for="additionalComments">Please share any additional thoughts on particular aspects of the
+                        university, courses, teachers, facilities, or campus life:</label>
+                    <textarea id="additionalComments" rows="5" placeholder="Your comments here..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(5)">Back</button>
+                    <button class="btn btn-primary" id="submitBtn" onclick="submitForm()" disabled>Submit
+                        Feedback</button>
+                </div>
+            </div>
+
+
+            <!-- Page 7: Thank You -->
+            <div class="page" id="page7">
+                <div class="thank-you-content" style="text-align: center;">
+                    <div class="thank-you-icon">✨</div>
+                    <h1>Thank You!</h1>
+                    <p>Your feedback has been successfully submitted. We truly appreciate you taking the time to share
+                        your thoughts and experiences with us.</p>
+                    <p>Your input is invaluable in helping us create a better learning environment for all students at
+                        IIPS.</p>
+
+                    <div class="contact-box">
+                        <h3>Stay Connected With Us</h3>
+                        <div class="contact-item">
+                            <span class="icon">🌐</span>
+                            <span><a href="https://iips.edu.in/" style="color: black;" target="_blank">Official site</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📧</span>
+                            <span>admin@iips.edu.in</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📞</span>
+                            <span>+91-731-2461888</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📍</span>
+                            <span>IIPS-Devi Ahilya University, Takshashila Campus Khandwa Road , Indore - 452001,
+                                INDIA</span>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 30px; color: var(--text-secondary); font-size: 0.95em;">© 2025 International
+                        Institute of Professional Studies</p>
+
+                    <div class="button-group" style="justify-content: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="exitForm()">Exit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="checkmark-circle">
+                <div class="checkmark"></div>
+            </div>
+            <h2 class="modal-title">You Have Responded!</h2>
+            <p class="modal-message">Thank you for completing the feedback form. Your response has been successfully recorded and will help us improve our services.</p>
+            <div class="modal-line"></div>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
