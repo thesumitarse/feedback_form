@@ -336,6 +336,8 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            /* Make table use a sensible minimum width so small screens can scroll horizontally */
+            min-width: 900px;
         }
 
         .response-table th {
@@ -351,6 +353,7 @@
             padding: 15px;
             border-bottom: 1px solid var(--border);
             font-size: 14px;
+            word-break: break-word;
         }
 
         .response-table tr:hover {
@@ -392,6 +395,39 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px var(--shadow);
         }
+
+        /* Responsive table wrapper to allow horizontal scrolling on small screens */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+        }
+
+        /* Reduce table min-width on smaller very small screens while keeping readability */
+        @media (max-width: 600px) {
+            .response-table {
+                min-width: 720px;
+            }
+
+            .response-table th,
+            .response-table td {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .filter-controls {
+                gap: 10px;
+            }
+
+            .filter-controls select,
+            .filter-controls input {
+                min-width: 140px;
+                flex: 1 1 auto;
+            }
+        }
+
+        /* If the author prefers stacked view on very small devices in future, we can add a row-to-card conversion.
+           For now horizontal scroll + compact padding preserves table semantics and is easiest for admins to use. */
 
         /* Response Detail Modal */
         .response-modal {
@@ -778,6 +814,8 @@
             background: var(--border);
             outline: none;
             -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
             margin-bottom: 15px;
         }
 
